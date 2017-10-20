@@ -157,34 +157,30 @@ public class CarLoanGui extends JFrame {
 		btnCalculate.addActionListener(new ActionListener() 
 		{
 			
-			public boolean isCapitalMissing()
+			public boolean isCapitalEntered()
 			{
-				boolean isMissing = false;
-				//
-				return !isMissing;
-				
+				boolean isEntered = false;
+				isEntered = txtCapital.getText().isEmpty();
+				return !isEntered;
 			}
 			
-			public boolean isNumOfMonthsMissing()
+			public boolean isNumOfMonthEntered()
 			{
-				boolean isMissing = false;
-				//
-				return !isMissing;
-				
+				boolean isEntered = false;
+				isEntered = txtNumberOfMonths.getText().isEmpty();
+				return !isEntered;
 			}
-			public boolean isAPRMissing()
+			public boolean isAPREntered()
 			{
-				boolean isMissing = false;
-				//
-				return !isMissing;
-				
+				boolean isEntered = false;
+				isEntered = txtAPR.getText().isEmpty();
+				return !isEntered;
 			}
-			public boolean isMonthlyPaymentMissing()
+			public boolean isMonthlyPaymentEntered()
 			{
-				boolean isMissing = false;
-				//
-				return !isMissing;
-				
+				boolean isEntered = false;
+				isEntered = txtMonthlyPayment.getText().isEmpty();
+				return !isEntered;
 			}
 			
 			public double CalculateMonthlyPayments(double capital, int months, double apr)
@@ -240,22 +236,25 @@ public class CarLoanGui extends JFrame {
 				
 				return r_prime;
 			}
-			/*
+			
 			
 			public double CalculateCapital(double apr, int months, double monthly_payment)
 			{
 				double result = 0;
-				
+				double x = Math.pow(((apr/1200.0)+1), ((double)months));
+				result = (monthly_payment * (x-1))/((apr/1200)*x);
 				return result;
 			}
 			
 			public int CalculateNumberOfMonths(double apr, double capital, double monthly_payment)
 			{
 				int result = 0;
-				
+				double x = Math.log(1/(1-(capital*(apr/1200)/monthly_payment)));
+				double y = Math.log(1 + (apr/1200));
+				result = (int)Math.round(x/y);
 				return result;
 			}
-			*/
+			
 			public void actionPerformed(ActionEvent e) 
 			{
 				//Parse variables into number respective format
@@ -284,35 +283,34 @@ public class CarLoanGui extends JFrame {
 				
 				
 				//Calculate missing variable
-				/*
+
 				//Calculate Monthly Payment
-				if (isCapitalMissing() && isNumOfMonthsMissing() && isAPRMissing())
+				if (isCapitalEntered() && isNumOfMonthEntered() && isAPREntered())
 				{
 					double calc_payment = CalculateMonthlyPayments(capital, months, apr);
 					txtMonthlyPayment.setText(Double.toString(calc_payment));
 				}
-				*/
 				//Calculate APR
-				if (isCapitalMissing() && isNumOfMonthsMissing() && isMonthlyPaymentMissing())
+				else if (isCapitalEntered() && isNumOfMonthEntered() && isMonthlyPaymentEntered())
 				{
 					double calc_apr = CalculateAPR(capital, months, monthly_payment);
 					txtAPR.setText(Double.toString(calc_apr));
 				}
-				/*
+
 				//Calculate Capital
-				else if (isAPRMissing() && isNumOfMonthsMissing() && isMonthlyPaymentMissing())
+				else if (isAPREntered() && isNumOfMonthEntered() && isMonthlyPaymentEntered())
 				{
 					double calc_capital = CalculateCapital(apr, months, monthly_payment);
 					txtCapital.setText(Double.toString(calc_capital));
 				}
-				
 				//Calculate Number of Months
-				else if (isAPRMissing() && isCapitalMissing() && isMonthlyPaymentMissing())
+				else if (isAPREntered() && isCapitalEntered() && isMonthlyPaymentEntered())
 				{
 					int calc_months = CalculateNumberOfMonths(apr, capital, monthly_payment);
 					txtNumberOfMonths.setText(Integer.toString(calc_months));
 				}
-				
+
+				/*
 				//else invalid combination
 				else
 				{
