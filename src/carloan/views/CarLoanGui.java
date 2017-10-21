@@ -3,6 +3,9 @@ package carloan.views;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.lang.Math;
+import java.text.*;
+import java.awt.print.*;
+
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -22,6 +25,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JTable;
 import javax.swing.JList;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.JScrollPane;
 
 public class CarLoanGui extends JFrame {
 
@@ -32,8 +36,10 @@ public class CarLoanGui extends JFrame {
 	private JTextField txtMonthlyPayment;
 	private JButton btnCalculate;
 	private JButton btnAddToGraph;
-	private JTable table;
 	DefaultTableModel model = new DefaultTableModel();
+	private JTable table;
+	private JButton btnSave;
+	private JButton btnPrint;
 
 	/**
 	 * Launch the application.
@@ -68,41 +74,54 @@ public class CarLoanGui extends JFrame {
 	private void initComponents() 
 	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 525, 426);
+		setBounds(100, 100, 509, 445);
 		contentPane = new JPanel();
 		contentPane.setBackground(Color.LIGHT_GRAY);
 		contentPane.setForeground(Color.BLACK);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
-		JPanel panel = new JPanel();
-		
 		JPanel panel_1 = new JPanel();
+		
+		JScrollPane scrollPane = new JScrollPane();
+		
+		btnSave = new JButton("Save");
+		btnPrint = new JButton("Print");
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(27)
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(panel, GroupLayout.PREFERRED_SIZE, 355, GroupLayout.PREFERRED_SIZE)
-						.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(117, Short.MAX_VALUE))
+						.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(scrollPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE))
+					.addContainerGap())
+				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
+					.addContainerGap(266, Short.MAX_VALUE)
+					.addComponent(btnSave)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnPrint)
+					.addGap(29))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addContainerGap()
 					.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(31)
+					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
 					.addGap(18)
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(28, Short.MAX_VALUE))
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnSave)
+						.addComponent(btnPrint))
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 		);
 		
 		table = new JTable();
+		scrollPane.setViewportView(table);
 		Object[] columns = {"Loan Value", "# Of Months", "APR", "Monthly Payment"};
 		model.setColumnIdentifiers(columns);
 		table.setModel(model);
-		panel.add(table);
 		
 		JLabel lblCapital = new JLabel("Capital");
 		lblCapital.setBackground(SystemColor.info);
@@ -224,8 +243,15 @@ public class CarLoanGui extends JFrame {
 			public double CalculateMonthlyPayments(double capital, int months, double apr)
 			{
 				double result = 0;
-				double x = Math.pow(((apr/1200.0)+1), ((double)months));
-				result = ((capital * (apr/1200.0)) *  x) / (x - 1);
+				if(apr == 0.0)
+				{
+					result = capital/months;
+				}
+				else
+				{
+					double x = Math.pow(((apr/1200.0)+1), ((double)months));
+					result = ((capital * (apr/1200.0)) *  x) / (x - 1);
+				}
 				return result;
 			}
 			
@@ -275,22 +301,39 @@ public class CarLoanGui extends JFrame {
 				return r_prime;
 			}
 			
-			
 			public double CalculateCapital(double apr, int months, double monthly_payment)
 			{
 				double result = 0;
-				double x = Math.pow(((apr/1200.0)+1), ((double)months));
-				result = (monthly_payment * (x-1))/((apr/1200)*x);
+				if(apr == 0.0)
+				{
+					result = monthly_payment * months;
+				}
+				else
+				{
+					double x = Math.pow(((apr/1200.0)+1), ((double)months));
+					result = (monthly_payment * (x-1))/((apr/1200)*x);
+				}
 				return result;
 			}
 			
 			public int CalculateNumberOfMonths(double apr, double capital, double monthly_payment)
 			{
 				int result = 0;
-				double x = Math.log(1/(1-(capital*(apr/1200)/monthly_payment)));
-				double y = Math.log(1 + (apr/1200));
-				result = (int)Math.round(x/y);
-				return result;
+				if(apr == 0.0)
+				{
+					result = (int)(capital/monthly_payment);
+				}
+				else if (monthly_payment == 0.0)
+				{
+					//throws divide by 0 exception
+				}
+				else
+				{
+					double x = Math.log(1/(1-(capital*(apr/1200)/monthly_payment)));
+					double y = Math.log(1 + (apr/1200));
+					result = (int)Math.round(x/y);
+				}
+					return result;
 			}
 			
 			public void actionPerformed(ActionEvent e) 
@@ -371,6 +414,28 @@ public class CarLoanGui extends JFrame {
 				model.addRow(row);
 			}
 		});
-		
+		btnSave.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				//save table to pdf
+			}
+		});
+		btnPrint.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent evt) 
+			{
+				MessageFormat header = new MessageFormat("Loan Analysis");
+				MessageFormat footer = new MessageFormat("Page{0,number,integer}");
+				try
+				{
+					table.print(JTable.PrintMode.NORMAL, header, footer);
+				}
+				catch(java.awt.print.PrinterException e)
+				{
+					System.err.format("Cannot Print %s%n", e.getMessage());
+				}
+			}
+		});
 	}
 }
