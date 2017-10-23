@@ -26,6 +26,8 @@ import javax.swing.JTable;
 import javax.swing.JList;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
+
 
 public class CarLoanGui extends JFrame {
 
@@ -38,9 +40,9 @@ public class CarLoanGui extends JFrame {
 	private JButton btnAddToGraph;
 	DefaultTableModel model = new DefaultTableModel();
 	private JTable table;
-	private JButton btnSave;
 	private JButton btnPrint;
-
+	private double Last_Payment;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -56,7 +58,12 @@ public class CarLoanGui extends JFrame {
 			}
 		});
 	}
-
+	
+    public static void popup(String message, String title)
+    {
+        JOptionPane.showMessageDialog(null, message, "ERROR: " + title, JOptionPane.INFORMATION_MESSAGE);
+    }
+    
 	/**
 	 * Create the frame.
 	 */
@@ -66,7 +73,7 @@ public class CarLoanGui extends JFrame {
 		createEvents();
 
 	}
-
+	
 	/*********************************************************
 	 * This method contains all of the code for creating
 	 * and initializing Components
@@ -74,7 +81,7 @@ public class CarLoanGui extends JFrame {
 	private void initComponents() 
 	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 509, 445);
+		setBounds(100, 100, 638, 456);
 		contentPane = new JPanel();
 		contentPane.setBackground(Color.LIGHT_GRAY);
 		contentPane.setForeground(Color.BLACK);
@@ -84,22 +91,18 @@ public class CarLoanGui extends JFrame {
 		JPanel panel_1 = new JPanel();
 		
 		JScrollPane scrollPane = new JScrollPane();
-		
-		btnSave = new JButton("Save");
 		btnPrint = new JButton("Print");
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
-			gl_contentPane.createParallelGroup(Alignment.LEADING)
+			gl_contentPane.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(27)
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
 						.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(scrollPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE))
 					.addContainerGap())
-				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-					.addContainerGap(266, Short.MAX_VALUE)
-					.addComponent(btnSave)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap(399, Short.MAX_VALUE)
 					.addComponent(btnPrint)
 					.addGap(29))
 		);
@@ -111,15 +114,13 @@ public class CarLoanGui extends JFrame {
 					.addGap(31)
 					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
 					.addGap(18)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnSave)
-						.addComponent(btnPrint))
+					.addComponent(btnPrint)
 					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 		);
 		
 		table = new JTable();
 		scrollPane.setViewportView(table);
-		Object[] columns = {"Loan Value", "# Of Months", "APR", "Monthly Payment"};
+		Object[] columns = {"Loan Value", "# Of Months", "APR", "Monthly Payment", "Final Payment"};
 		model.setColumnIdentifiers(columns);
 		table.setModel(model);
 		
@@ -246,11 +247,23 @@ public class CarLoanGui extends JFrame {
 				if(apr == 0.0)
 				{
 					result = capital/months;
+					double fraction = result - (int) result;
+					fraction = fraction * 100;
+					fraction = fraction - (int) fraction;
+					fraction = (fraction/100) * months;
+					Last_Payment = result + fraction;
+					Last_Payment = Math.round(Last_Payment*100.0)/100.0;
 				}
 				else
 				{
 					double x = Math.pow(((apr/1200.0)+1), ((double)months));
 					result = ((capital * (apr/1200.0)) *  x) / (x - 1);
+					double fraction = result - (int) result;
+					fraction = fraction * 100;
+					fraction = fraction - (int) fraction;
+					fraction = (fraction/100) * months;
+					Last_Payment = result + fraction;
+					Last_Payment = Math.round(Last_Payment*100.0)/100.0;
 				}
 				return result;
 			}
@@ -261,7 +274,7 @@ public class CarLoanGui extends JFrame {
 				double inter_value = 0;
 				double r_prime = 5.0;
 				double R_result = CalculateMonthlyPayments(capital, months, r_prime);
-				double delta = R_result - monthly_payment;;
+				double delta = R_result - monthly_payment;
 				while ( (delta < -.001) || (delta > .001) )
 				{
 					if (delta > 0)
@@ -298,6 +311,11 @@ public class CarLoanGui extends JFrame {
 					delta = R_result - monthly_payment;
 				}
 				
+				if(r_prime < .001 && r_prime > 0)
+				{
+					r_prime = 0;
+				}
+				Last_Payment = monthly_payment;
 				return r_prime;
 			}
 			
@@ -313,6 +331,7 @@ public class CarLoanGui extends JFrame {
 					double x = Math.pow(((apr/1200.0)+1), ((double)months));
 					result = (monthly_payment * (x-1))/((apr/1200)*x);
 				}
+				Last_Payment = monthly_payment;
 				return result;
 			}
 			
@@ -333,7 +352,8 @@ public class CarLoanGui extends JFrame {
 					double y = Math.log(1 + (apr/1200));
 					result = (int)Math.round(x/y);
 				}
-					return result;
+				Last_Payment = monthly_payment;
+				return result;
 			}
 			
 			public void actionPerformed(ActionEvent e) 
@@ -347,19 +367,51 @@ public class CarLoanGui extends JFrame {
 				
 				if (txtCapital.getText().isEmpty() == false)
 				{
-					capital = Double.parseDouble(txtCapital.getText());
+					try
+					{
+						capital = Double.parseDouble(txtCapital.getText());
+					}
+					
+					catch (Exception e1)
+					{
+						popup("Capital Input Invalid", "INPUT ERROR");
+					}
 				}
 				if (txtNumberOfMonths.getText().isEmpty() == false)
 				{
-					months = Integer.parseInt(txtNumberOfMonths.getText());
+					try
+					{
+						months = Integer.parseInt(txtNumberOfMonths.getText());
+					}
+					
+					catch (Exception e2)
+					{
+						popup("Number Of Months Input Invalid", "INPUT ERROR");
+					}
 				}
 				if (txtAPR.getText().isEmpty() == false)
 				{
-					apr = Double.parseDouble(txtAPR.getText());
+					try
+					{
+						apr = Double.parseDouble(txtAPR.getText());
+					}
+					
+					catch (Exception e3)
+					{
+						popup("APR Input Invalid", "INPUT ERROR");
+					}
 				}
 				if(txtMonthlyPayment.getText().isEmpty() == false)
 				{
-					monthly_payment = Double.parseDouble(txtMonthlyPayment.getText());
+					try
+					{
+						monthly_payment = Double.parseDouble(txtMonthlyPayment.getText());
+					}
+					
+					catch (Exception e4)
+					{
+						popup("Monthly Payment Input Invalid", "INPUT ERROR");
+					}
 				}
 				
 				
@@ -368,40 +420,75 @@ public class CarLoanGui extends JFrame {
 				//Calculate Monthly Payment
 				if (isCapitalEntered() && isNumOfMonthEntered() && isAPREntered())
 				{
-					double calc_payment = CalculateMonthlyPayments(capital, months, apr);
-					txtMonthlyPayment.setText(Double.toString(calc_payment));
+					try
+					{
+						double calc_payment = CalculateMonthlyPayments(capital, months, apr);
+						calc_payment = Math.round(calc_payment*100.0)/100.0;
+						txtMonthlyPayment.setText(Double.toString(calc_payment));
+					}
+					
+					catch (Exception e1)
+					{
+						popup("Inputs For Monthly Payment Calculation Is Not Valid.", "INPUT ERROR");
+					}
 				}
 				//Calculate APR
 				else if (isCapitalEntered() && isNumOfMonthEntered() && isMonthlyPaymentEntered())
 				{
-					double calc_apr = CalculateAPR(capital, months, monthly_payment);
-					txtAPR.setText(Double.toString(calc_apr));
+					try
+					{
+						double calc_apr = CalculateAPR(capital, months, monthly_payment);
+						calc_apr = Math.round(calc_apr*100.0)/100.0;
+						txtAPR.setText(Double.toString(calc_apr));
+					}
+					
+					catch(Exception e2)
+					{
+						popup("Inputs For APR Calculation Is Not Valid.", "INPUT ERROR");
+					}
 				}
 
 				//Calculate Capital
 				else if (isAPREntered() && isNumOfMonthEntered() && isMonthlyPaymentEntered())
 				{
-					double calc_capital = CalculateCapital(apr, months, monthly_payment);
-					txtCapital.setText(Double.toString(calc_capital));
+					try
+					{
+						double calc_capital = CalculateCapital(apr, months, monthly_payment);
+						calc_capital = Math.round(calc_capital*100.0)/100.0;
+						txtCapital.setText(Double.toString(calc_capital));
+					}
+					
+					catch(Exception e3)
+					{
+						popup("Inputs For Capital Calculation Is Not Valid.", "INPUT ERROR");
+					}
 				}
 				//Calculate Number of Months
 				else if (isAPREntered() && isCapitalEntered() && isMonthlyPaymentEntered())
 				{
-					int calc_months = CalculateNumberOfMonths(apr, capital, monthly_payment);
-					txtNumberOfMonths.setText(Integer.toString(calc_months));
+					try
+					{
+						int calc_months = CalculateNumberOfMonths(apr, capital, monthly_payment);
+						txtNumberOfMonths.setText(Integer.toString(calc_months));
+					}
+					
+					catch(Exception e4)
+					{
+						popup("Inputs For Number Of Months Calculation Is Not Valid.", "INPUT ERROR");
+					}
 				}
 
-				/*
+				
 				//else invalid combination
 				else
 				{
-					//prompt user that we need more inputs
+					popup("Need More Inputs", "INPUT ERROR");
 				}
-				*/
+				
 			}
 
 		});
-		Object[] row = new Object[4];
+		Object[] row = new Object[5];
 		btnAddToGraph.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e)
@@ -410,15 +497,9 @@ public class CarLoanGui extends JFrame {
 				row[1] = txtNumberOfMonths.getText();
 				row[2] = txtAPR.getText();
 				row[3] = txtMonthlyPayment.getText();
+				row[4] = Double.toString(Last_Payment);
 				
 				model.addRow(row);
-			}
-		});
-		btnSave.addActionListener(new ActionListener() 
-		{
-			public void actionPerformed(ActionEvent arg0) 
-			{
-				//save table to pdf
 			}
 		});
 		btnPrint.addActionListener(new ActionListener() 
