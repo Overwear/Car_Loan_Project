@@ -43,12 +43,10 @@ public class CarLoanGui extends JFrame {
 	DefaultTableModel model = new DefaultTableModel();
 	private JTable table;
 	private JButton btnPrint;
-	private double Last_Payment;
 	private boolean hasCapital = false;
 	private boolean hasAPR = false;
 	private boolean hasNumOfMonths = false;
 	private boolean hasMonthlyPayment = false;
-	private int counter = 0;
 	
 	/**
 	 * Launch the application.
@@ -153,11 +151,11 @@ public class CarLoanGui extends JFrame {
 		
 		table = new JTable();
 		scrollPane.setViewportView(table);
-		Object[] columns = {"Loan Value", "# Of Months", "APR", "Monthly Payment", "Final Payment"};
+		Object[] columns = {"Loan Value", "# Of Months", "APR %", "Monthly Payment", "Final Payment"};
 		model.setColumnIdentifiers(columns);
 		table.setModel(model);
 		
-		JLabel lblCapital = new JLabel("Capital");
+		JLabel lblCapital = new JLabel("Capital (USD)");
 		lblCapital.setBackground(SystemColor.info);
 		lblCapital.setForeground(Color.BLACK);
 		
@@ -168,11 +166,11 @@ public class CarLoanGui extends JFrame {
 		txtNumberOfMonths = new JTextField();
 		txtNumberOfMonths.setColumns(10);
 		
-		JLabel lblAPR = new JLabel("APR");
+		JLabel lblAPR = new JLabel("APR (%)");
 		txtAPR = new JTextField();
 		txtAPR.setColumns(10);
 		
-		JLabel lblMonthlyPayment = new JLabel("Monthly Payments");
+		JLabel lblMonthlyPayment = new JLabel("Monthly Payments (USD)");
 		txtMonthlyPayment = new JTextField();
 		txtMonthlyPayment.setColumns(10);
 		
@@ -245,121 +243,6 @@ public class CarLoanGui extends JFrame {
 	{
 		btnCalculate.addActionListener(new ActionListener() 
 		{
-			public double CalculateMonthlyPayments(double capital, int months, double apr)
-			{
-				double result = 0;
-				if(apr == 0.0)
-				{
-					result = capital/months;
-					double fraction = result - (int) result;
-					fraction = fraction * 100;
-					fraction = fraction - (int) fraction;
-					fraction = (fraction/100) * months;
-					Last_Payment = result + fraction;
-					Last_Payment = Math.round(Last_Payment*100.0)/100.0;
-				}
-				else
-				{
-					double x = Math.pow(((apr/1200.0)+1), ((double)months));
-					result = ((capital * (apr/1200.0)) *  x) / (x - 1);
-					double fraction = result - (int) result;
-					fraction = fraction * 100;
-					fraction = fraction - (int) fraction;
-					fraction = (fraction/100) * months;
-					Last_Payment = result + fraction;
-					Last_Payment = Math.round(Last_Payment*100.0)/100.0;
-				}
-				return result;
-			}
-			
-			public double CalculateAPR(double capital, int months, double monthly_payment)
-			{
-				double previous_value = 0;
-				double inter_value = 0;
-				double r_prime = 5.0;
-				double R_result = CalculateMonthlyPayments(capital, months, r_prime);
-				double delta = R_result - monthly_payment;
-				while ( (delta < -.001) || (delta > .001) )
-				{
-					if (delta > 0)
-					{
-						if (inter_value == 0)
-						{
-							previous_value = r_prime;
-							inter_value = r_prime/2;
-							r_prime = r_prime - inter_value;
-						}
-						else
-						{
-							inter_value = Math.abs(r_prime - (previous_value/2));
-							previous_value = r_prime;
-							r_prime = r_prime - inter_value;
-					 	}
-					}
-					else if (delta < 0)
-					{
-						if (inter_value == 0)
-						{
-							previous_value = r_prime;
-							inter_value = r_prime/2;
-							r_prime = r_prime + inter_value;
-						}
-						else
-						{
-							inter_value = Math.abs((previous_value - r_prime)/2);
-							previous_value = r_prime;
-							r_prime = r_prime + inter_value;
-						}
-					}
-					R_result = CalculateMonthlyPayments(capital, months, r_prime);
-					delta = R_result - monthly_payment;
-				}
-				
-				if(r_prime < .001 && r_prime > 0)
-				{
-					r_prime = 0;
-				}
-				Last_Payment = monthly_payment;
-				return r_prime;
-			}
-			
-			public double CalculateCapital(double apr, int months, double monthly_payment)
-			{
-				double result = 0;
-				if(apr == 0.0)
-				{
-					result = monthly_payment * months;
-				}
-				else
-				{
-					double x = Math.pow(((apr/1200.0)+1), ((double)months));
-					result = (monthly_payment * (x-1))/((apr/1200)*x);
-				}
-				Last_Payment = monthly_payment;
-				return result;
-			}
-			
-			public int CalculateNumberOfMonths(double apr, double capital, double monthly_payment)
-			{
-				int result = 0;
-				if(apr == 0.0)
-				{
-					result = (int)(capital/monthly_payment);
-				}
-				else if (monthly_payment == 0.0)
-				{
-					//throws divide by 0 exception
-				}
-				else
-				{
-					double x = Math.log(1/(1-(capital*(apr/1200)/monthly_payment)));
-					double y = Math.log(1 + (apr/1200));
-					result = (int)Math.round(x/y);
-				}
-				Last_Payment = monthly_payment;
-				return result;
-			}
-			
 			public void actionPerformed(ActionEvent e) 
 			{
 				//Parse variables into number respective format
@@ -426,7 +309,7 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						double calc_payment = CalculateMonthlyPayments(capital, months, apr);
+						double calc_payment = Formulas.CalculateMonthlyPayments(capital, months, apr);
 						calc_payment = Math.round(calc_payment*100.0)/100.0;
 						txtMonthlyPayment.setText(Double.toString(calc_payment));
 					}
@@ -441,7 +324,7 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						double calc_apr = CalculateAPR(capital, months, monthly_payment);
+						double calc_apr = Formulas.CalculateAPR(capital, months, monthly_payment);
 						calc_apr = Math.round(calc_apr*100.0)/100.0;
 						txtAPR.setText(Double.toString(calc_apr));
 					}
@@ -450,6 +333,7 @@ public class CarLoanGui extends JFrame {
 					{
 						popup("Inputs For APR Calculation Is Not Valid.", "INPUT ERROR");
 					}
+					
 				}
 
 				//Calculate Capital
@@ -457,7 +341,7 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						double calc_capital = CalculateCapital(apr, months, monthly_payment);
+						double calc_capital = Formulas.CalculateCapital(apr, months, monthly_payment);
 						calc_capital = Math.round(calc_capital*100.0)/100.0;
 						txtCapital.setText(Double.toString(calc_capital));
 					}
@@ -472,7 +356,7 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						int calc_months = CalculateNumberOfMonths(apr, capital, monthly_payment);
+						int calc_months = Formulas.CalculateNumberOfMonths(apr, capital, monthly_payment);
 						txtNumberOfMonths.setText(Integer.toString(calc_months));
 					}
 					
@@ -501,7 +385,7 @@ public class CarLoanGui extends JFrame {
 				row[1] = txtNumberOfMonths.getText();
 				row[2] = txtAPR.getText();
 				row[3] = txtMonthlyPayment.getText();
-				row[4] = Double.toString(Last_Payment);
+				row[4] = Double.toString(Formulas.getLastPayment());
 				
 				model.addRow(row);
 			}
