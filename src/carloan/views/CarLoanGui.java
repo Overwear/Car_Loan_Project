@@ -27,6 +27,8 @@ import javax.swing.JList;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JScrollPane;
 import javax.swing.JOptionPane;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 
 public class CarLoanGui extends JFrame {
@@ -42,6 +44,11 @@ public class CarLoanGui extends JFrame {
 	private JTable table;
 	private JButton btnPrint;
 	private double Last_Payment;
+	private boolean hasCapital = false;
+	private boolean hasAPR = false;
+	private boolean hasNumOfMonths = false;
+	private boolean hasMonthlyPayment = false;
+	private int counter = 0;
 	
 	/**
 	 * Launch the application.
@@ -64,6 +71,33 @@ public class CarLoanGui extends JFrame {
         JOptionPane.showMessageDialog(null, message, "ERROR: " + title, JOptionPane.INFORMATION_MESSAGE);
     }
     
+	private boolean isCapitalEntered()
+	{
+		return !(txtCapital.getText().isEmpty());
+	}
+	
+	private boolean isNumOfMonthEntered()
+	{
+		return !(txtNumberOfMonths.getText().isEmpty());
+	}
+	 
+	private boolean isAPREntered()
+	{
+		return !(txtAPR.getText().isEmpty());
+	}
+	
+	private boolean isMonthlyPaymentEntered()
+	{
+		return !(txtMonthlyPayment.getText().isEmpty());
+	}
+	
+	private boolean isThreeInputsEntered()
+	{
+		return((hasCapital && hasAPR && hasNumOfMonths)
+		|| (hasCapital && hasAPR && hasMonthlyPayment)
+		|| (hasNumOfMonths && hasAPR && hasMonthlyPayment)
+		|| (hasNumOfMonths && hasCapital && hasMonthlyPayment));
+	}
 	/**
 	 * Create the frame.
 	 */
@@ -73,7 +107,6 @@ public class CarLoanGui extends JFrame {
 		createEvents();
 
 	}
-	
 	/*********************************************************
 	 * This method contains all of the code for creating
 	 * and initializing Components
@@ -132,17 +165,14 @@ public class CarLoanGui extends JFrame {
 		txtCapital.setColumns(10);
 		
 		JLabel lblNumberOfMonths = new JLabel("Number of Months");
-		
 		txtNumberOfMonths = new JTextField();
 		txtNumberOfMonths.setColumns(10);
 		
 		JLabel lblAPR = new JLabel("APR");
-		
 		txtAPR = new JTextField();
 		txtAPR.setColumns(10);
 		
 		JLabel lblMonthlyPayment = new JLabel("Monthly Payments");
-		
 		txtMonthlyPayment = new JTextField();
 		txtMonthlyPayment.setColumns(10);
 		
@@ -150,6 +180,7 @@ public class CarLoanGui extends JFrame {
 		btnAddToGraph.setBackground(SystemColor.menu);
 		btnCalculate = new JButton("Calculate");
 		btnCalculate.setBackground(SystemColor.menu);
+		btnCalculate.setEnabled(false);
 		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
 		gl_panel_1.setHorizontalGroup(
 			gl_panel_1.createParallelGroup(Alignment.LEADING)
@@ -214,33 +245,6 @@ public class CarLoanGui extends JFrame {
 	{
 		btnCalculate.addActionListener(new ActionListener() 
 		{
-			
-			public boolean isCapitalEntered()
-			{
-				boolean isEntered = false;
-				isEntered = txtCapital.getText().isEmpty();
-				return !isEntered;
-			}
-			
-			public boolean isNumOfMonthEntered()
-			{
-				boolean isEntered = false;
-				isEntered = txtNumberOfMonths.getText().isEmpty();
-				return !isEntered;
-			}
-			public boolean isAPREntered()
-			{
-				boolean isEntered = false;
-				isEntered = txtAPR.getText().isEmpty();
-				return !isEntered;
-			}
-			public boolean isMonthlyPaymentEntered()
-			{
-				boolean isEntered = false;
-				isEntered = txtMonthlyPayment.getText().isEmpty();
-				return !isEntered;
-			}
-			
 			public double CalculateMonthlyPayments(double capital, int months, double apr)
 			{
 				double result = 0;
@@ -516,6 +520,98 @@ public class CarLoanGui extends JFrame {
 				{
 					System.err.format("Cannot Print %s%n", e.getMessage());
 				}
+			}
+		});
+		txtCapital.addKeyListener(new KeyAdapter() 
+		{
+			public void keyReleased(KeyEvent arg0) 
+			{
+				if(txtCapital.getText().length() > 0)
+				{
+					hasCapital = true;
+				}
+				else
+				{
+					hasCapital= false;
+				}
+				if(isThreeInputsEntered())
+				{
+					btnCalculate.setEnabled(true);
+				}
+				else
+				{
+					btnCalculate.setEnabled(false);
+				}
+			}
+		});
+		txtNumberOfMonths.addKeyListener(new KeyAdapter()
+		{
+			@Override
+			public void keyReleased(KeyEvent arg0)
+			{
+				if(txtNumberOfMonths.getText().length() > 0)
+				{
+					hasNumOfMonths = true;
+				}
+				else
+				{
+					hasNumOfMonths = false;
+				}
+				if(isThreeInputsEntered())
+				{
+					btnCalculate.setEnabled(true);
+				}
+				else
+				{
+					btnCalculate.setEnabled(false);
+				}
+			}
+		});
+		txtAPR.addKeyListener(new KeyAdapter()
+		{
+			@Override
+			public void keyReleased(KeyEvent e)
+			{
+				if(txtAPR.getText().length() > 0)
+				{
+					hasAPR = true;
+				}
+				else
+				{
+					hasAPR = false;
+				}
+				if(isThreeInputsEntered())
+				{
+					btnCalculate.setEnabled(true);
+				}
+				else
+				{
+					btnCalculate.setEnabled(false);
+				}
+			}
+		});
+		txtMonthlyPayment.addKeyListener(new KeyAdapter()
+		{
+			@Override
+			public void keyReleased(KeyEvent e)
+			{
+				if(txtMonthlyPayment.getText().length() > 0)
+				{
+					hasMonthlyPayment = true;
+				}
+				else
+				{
+					hasMonthlyPayment = false;
+				}
+				if(isThreeInputsEntered())
+				{
+					btnCalculate.setEnabled(true);
+				}
+				else
+				{
+					btnCalculate.setEnabled(false);
+				}
+				
 			}
 		});
 	}
