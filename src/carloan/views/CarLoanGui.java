@@ -398,7 +398,7 @@ public class CarLoanGui extends JFrame {
 				MessageFormat footer = new MessageFormat("Page{0,number,integer}");
 				try
 				{
-					table.print(JTable.PrintMode.NORMAL, header, footer);
+					table.print(JTable.PrintMode.FIT_WIDTH, header, footer);
 				}
 				catch(java.awt.print.PrinterException e)
 				{
