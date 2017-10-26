@@ -48,7 +48,7 @@ public class Formulas
 		{
 			throw new ArithmeticException("Monthly Payment * Months Is Less Than Capital!");
 		}
-		while ( (delta < -.00) || (delta > .005) )
+		while ( (delta < -.01) || (delta > .005) )
 		{
 			if (delta > 0)
 			{
