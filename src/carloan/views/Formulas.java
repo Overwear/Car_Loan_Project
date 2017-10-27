@@ -15,12 +15,10 @@ public class Formulas
 		double result = 0;
 		if(apr == 0.0)
 		{
+			double intermed;
 			result = capital/months;
-			double fraction = result - (int) result;
-			fraction = fraction * 100;
-			fraction = fraction - (int) fraction;
-			fraction = (fraction/100) * months;
-			Last_Payment = result + fraction;
+			intermed = Math.round(result*100.0)/100.0;
+			Last_Payment = capital - ((months-1)*intermed);
 			Last_Payment = Math.round(Last_Payment*100.0)/100.0;
 		}
 		else

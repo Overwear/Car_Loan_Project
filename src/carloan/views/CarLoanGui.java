@@ -250,7 +250,7 @@ public class CarLoanGui extends JFrame {
 				int months = 0;
 				double apr = 0;
 				double monthly_payment = 0;
-				
+				boolean isPassing = true;
 				
 				if (txtCapital.getText().isEmpty() == false)
 				{
@@ -258,7 +258,6 @@ public class CarLoanGui extends JFrame {
 					{
 						capital = Double.parseDouble(txtCapital.getText());
 					}
-					
 					catch (Exception e1)
 					{
 						popup("Capital Input Invalid", "INPUT ERROR");
@@ -269,6 +268,11 @@ public class CarLoanGui extends JFrame {
 					try
 					{
 						months = Integer.parseInt(txtNumberOfMonths.getText());
+						if(((months % 12) != 0) || (months < 12) || (months > 72))
+						{
+							isPassing = false;
+							popup("Number of Months Is Out Of Range.", "INPUT ERROR");
+						}
 					}
 					
 					catch (Exception e2)
@@ -281,6 +285,11 @@ public class CarLoanGui extends JFrame {
 					try
 					{
 						apr = Double.parseDouble(txtAPR.getText());
+						if((apr < -0.99) || (apr > 75.0))
+						{
+							isPassing = false;
+							popup("APR Is Out Of Range", "INPUT ERROR");	
+						}
 					}
 					
 					catch (Exception e3)
@@ -309,9 +318,16 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						double calc_payment = Formulas.CalculateMonthlyPayments(capital, months, apr);
-						calc_payment = Math.round(calc_payment*100.0)/100.0;
-						txtMonthlyPayment.setText(Double.toString(calc_payment));
+						if(isPassing)
+						{
+							double calc_payment = Formulas.CalculateMonthlyPayments(capital, months, apr);
+							calc_payment = Math.round(calc_payment*100.0)/100.0;
+							txtMonthlyPayment.setText(Double.toString(calc_payment));
+						}
+						else
+						{
+							popup("APR Range: 0-75\n Number Of Months Range: 12-72", "ERROR");
+						}
 					}
 					
 					catch (Exception e1)
@@ -324,9 +340,24 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						double calc_apr = Formulas.CalculateAPR(capital, months, monthly_payment);
-						calc_apr = Math.round(calc_apr*100.0)/100.0;
-						txtAPR.setText(Double.toString(calc_apr));
+						
+						if(isPassing)
+						{
+							double calc_apr = Formulas.CalculateAPR(capital, months, monthly_payment);
+							calc_apr = Math.round(calc_apr*100.0)/100.0;
+							if((calc_apr <= 75) && (calc_apr >= 0))
+							{
+								txtAPR.setText(Double.toString(calc_apr));
+							}
+							else
+							{
+								popup("Calculated APR Is Out Of Range", "CALCULATION ERROR");
+							}
+						}
+						else
+						{
+							popup("APR Range: 0-75\n Number Of Months Range: 12-72", "ERROR");
+						}
 					}
 					
 					catch(Exception e2)
@@ -341,9 +372,16 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						double calc_capital = Formulas.CalculateCapital(apr, months, monthly_payment);
-						calc_capital = Math.round(calc_capital*100.0)/100.0;
-						txtCapital.setText(Double.toString(calc_capital));
+						if(isPassing)
+						{
+							double calc_capital = Formulas.CalculateCapital(apr, months, monthly_payment);
+							calc_capital = Math.round(calc_capital*100.0)/100.0;
+							txtCapital.setText(Double.toString(calc_capital));
+						}
+						else
+						{
+							popup("APR Range: 0-75\n Number Of Months Range: 12-72", "ERROR");
+						}
 					}
 					
 					catch(Exception e3)
@@ -356,8 +394,15 @@ public class CarLoanGui extends JFrame {
 				{
 					try
 					{
-						int calc_months = Formulas.CalculateNumberOfMonths(apr, capital, monthly_payment);
-						txtNumberOfMonths.setText(Integer.toString(calc_months));
+						if(isPassing)
+						{
+							int calc_months = Formulas.CalculateNumberOfMonths(apr, capital, monthly_payment);
+							txtNumberOfMonths.setText(Integer.toString(calc_months));
+						}
+						else
+						{
+							popup("APR Range: 0-75\n Number Of Months Range: 12-72", "ERROR");
+						}
 					}
 					
 					catch(Exception e4)
